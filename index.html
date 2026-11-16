@@ -58,7 +58,7 @@ textarea{min-height:92px;resize:vertical}
 .seat.on{background:var(--amber);border-color:var(--amber);color:#14233B}
 .nav{display:flex;gap:10px;align-items:center;margin-top:22px;flex-wrap:wrap}
 .btn{font:inherit;font-weight:600;border-radius:14px;padding:14px 20px;border:2px solid var(--green);cursor:pointer;
-  background:var(--green);color:var(--green-ink)}
+  background:var(--green);color:var(--green-ink);text-decoration:none;display:inline-block}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
 .btn.skip{background:transparent;color:var(--gap);border-color:transparent;padding:14px 8px;margin-left:auto}
 :focus-visible{outline:3px solid var(--amber);outline-offset:2px}
@@ -155,19 +155,21 @@ function sheet(){
   app.appendChild(meter());
   var done=Q.filter(hasAnswer).length, open=Q.length-done;
   app.appendChild(el("h1",null,"Founding seat, draft one"));
-  app.appendChild(el("p",null,done+" answered, "+open+" still open. Thanks, John. Copy this and send it to me, and I’ll turn it into a one-page offer for you to approve."));
+  app.appendChild(el("p",null,done+" answered, "+open+" still open. Thanks, John. Tap the button below to email it to me, and I’ll turn it into a one-page offer for you to approve."));
   var lines=["FOUNDING SEAT BUILDER: John’s answers",""];
   ROUNDS.forEach(function(name,r){app.appendChild(el("h2",null,name)); lines.push(name.toUpperCase());
     Q.filter(function(q){return q.r===r;}).forEach(function(q){var v=show(q), row=el("div","row"+(v?"":" open")); row.appendChild(el("b",null,q.t)); row.appendChild(el("span",null,v||"Still open"));
       app.appendChild(row); lines.push("Q: "+q.t); lines.push("A: "+(v||"STILL OPEN")); lines.push("");});});
   var out=el("textarea","out"); out.readOnly=true; out.value=lines.join("\n"); out.setAttribute("aria-label","All answers as text");
-  var nav=el("div","nav"), copy=el("button","btn","Copy answers"), edit=el("button","btn ghost","Change an answer"), msg=el("p","note","");
+  var nav=el("div","nav"), copy=el("button","btn ghost","Copy answers"), edit=el("button","btn ghost","Change an answer"), msg=el("p","note","");
+  var short=["John’s answers",""]; Q.forEach(function(q,i){short.push((i+1)+". "+q.t.slice(0,48)+": "+(show(q)||"OPEN"));});
+  var mail=el("a","btn","Email my answers to Jeremy"); mail.href="mailto:jeremy@mission.org?subject="+encodeURIComponent("Founding seat answers")+"&body="+encodeURIComponent(short.join("\n"));
   copy.onclick=function(){out.focus(); out.select(); var ok=false; try{ok=document.execCommand("copy");}catch(e){}
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(out.value).then(function(){msg.textContent="Copied. Paste it into a text or email to Jeremy.";},function(){msg.textContent=ok?"Copied. Paste it into a text or email to Jeremy.":"Copy didn’t work here. Select the text below and copy it by hand.";});}
     else msg.textContent=ok?"Copied. Paste it into a text or email to Jeremy.":"Copy didn’t work here. Select the text below and copy it by hand.";};
   edit.onclick=function(){app.className="wrap"; step=0; save(); render();};
-  nav.appendChild(copy); nav.appendChild(edit); app.appendChild(el("h2",null,"Send it over")); app.appendChild(nav); app.appendChild(msg); app.appendChild(out);
-  app.appendChild(el("p","note","Your answers are saved in this browser only. Nothing is sent anywhere until you copy and send it yourself."));
+  nav.appendChild(mail); nav.appendChild(copy); nav.appendChild(edit); app.appendChild(el("h2",null,"Send it over")); app.appendChild(nav); app.appendChild(msg); app.appendChild(out);
+  app.appendChild(el("p","note","Your answers are saved in this browser only. Nothing is sent anywhere until you send it yourself."));
   window.scrollTo(0,0);
 }
 function render(){app.className="wrap"; if(step<0)intro(); else if(step>=Q.length)sheet(); else question();}
