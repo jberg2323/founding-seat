@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Build the Founding Seat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F5F3; --card:#FFFFFF; --ink:#14233B; --soft:#56657A; --line:#CFD7D2;
+  --green:#1F7A5C; --green-ink:#FFFFFF; --amber:#E0A12B; --chip:#E6ECE8; --gap:#B4472F;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0F1A26; --card:#182636; --ink:#E9EFEA; --soft:#9FB0BF; --line:#2C3E50;
+    --green:#49B990; --green-ink:#0B1A14; --amber:#F0B94A; --chip:#223447; --gap:#F08A70;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0F1A26; --card:#182636; --ink:#E9EFEA; --soft:#9FB0BF; --line:#2C3E50;
+  --green:#49B990; --green-ink:#0B1A14; --amber:#F0B94A; --chip:#223447; --gap:#F08A70;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);
+  font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.5}
+.wrap{max-width:640px;margin:0 auto;padding:20px 20px 48px}
+h1,h2,.q{font-family:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;font-weight:700;line-height:1.12;margin:0}
+h1{font-size:clamp(2.2rem,9vw,3.4rem);letter-spacing:-0.02em}
+h2{font-size:1.5rem}
+.q{font-size:clamp(1.45rem,5.6vw,1.9rem);letter-spacing:-0.01em}
+p{margin:0 0 14px}
+.soft{color:var(--soft)}
+.meter{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:4px 0 22px}
+.meter div{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--amber);transition:width .35s ease}
+.round{font-weight:600;color:var(--green);margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 20px}
+.names{font-family:"Bricolage Grotesque",sans-serif;font-weight:500;font-size:1.25rem;min-height:1.6em;
+  color:var(--soft);margin:18px 0 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.names.done{color:var(--green);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 6px}
+.chip{font:inherit;color:var(--ink);background:var(--chip);border:2px solid transparent;border-radius:999px;
+  padding:11px 16px;cursor:pointer;text-align:left}
+.chip[aria-pressed="true"]{background:var(--green);color:var(--green-ink);border-color:var(--green)}
+textarea,input[type=date]{font:inherit;color:var(--ink);background:var(--paper);border:1.5px solid var(--line);
+  border-radius:12px;padding:12px 14px;width:100%;max-width:100%;margin-top:12px}
+textarea{min-height:92px;resize:vertical}
+.seats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:18px 0 8px;max-width:360px}
+.seat{aspect-ratio:1;border-radius:50%;border:2px solid var(--line);background:var(--paper);cursor:pointer;
+  font:inherit;font-weight:600;color:var(--soft)}
+.seat.on{background:var(--amber);border-color:var(--amber);color:#14233B}
+.nav{display:flex;gap:10px;align-items:center;margin-top:22px;flex-wrap:wrap}
+.btn{font:inherit;font-weight:600;border-radius:14px;padding:14px 20px;border:2px solid var(--green);cursor:pointer;
+  background:var(--green);color:var(--green-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.skip{background:transparent;color:var(--gap);border-color:transparent;padding:14px 8px;margin-left:auto}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.sheet h2{margin:26px 0 8px}
+.row{border-top:1px solid var(--line);padding:12px 0}
+.row b{display:block;font-weight:600}
+.row span{color:var(--soft);white-space:pre-wrap}
+.row.open span{color:var(--gap)}
+.out{min-height:180px;font-size:15px}
+.note{font-size:15px;color:var(--soft);margin-top:10px}
+@media (prefers-reduced-motion: reduce){.meter i{transition:none}}
+</style>
+</head>
+<body>
+<main class="wrap" id="app" aria-live="polite"></main>
+<script>
+(function(){
+var ROUNDS=["Why doctors said yes","Proof","Speed and effort","Urgency","Risk","Pushback and rules"];
+var Q=[
+ {r:0,id:"why",t:"Think of the doctors who’ve joined. What did they say they wanted out of it?",multi:1,o:["A voice in the standard","Fewer ordering errors","Less staff re-entry","Guidance on getting into peptides","Backing Ian","Being first"],text:"Their words, if you remember them"},
+ {r:0,id:"ninety",t:"What will a physician member have in hand 90 days after joining?",multi:1,o:["A roundtable seat","Survey results","Draft guidelines","A direct line to pharmacies","Not defined yet"],text:"Anything else"},
+ {r:0,id:"story",t:"Give me one real example of the problem from a practice.",text:"An ordering error, a re-keyed script, a pharmacy mix-up",long:1},
+ {r:1,id:"names",t:"Can I name the doctors who are in?",o:["Yes, all of them","Yes, once they OK it","First names only","No"]},
+ {r:1,id:"refcall",t:"Would one of them take a 10-minute call from a prospect?",o:["Yes","Probably","No","I’ll ask"]},
+ {r:1,id:"semi",t:"Your standards work at SEMI: what did it produce, in a line or two I can repeat?",text:"What you built and how long it took",long:1},
+ {r:1,id:"paper",t:"The press release says 27 catalogs, 4,506 entries and 181 written variations of semaglutide. Anything to add or avoid when I quote it?",o:["Quote it as written","Add something","Avoid something"],text:"What to add or avoid"},
+ {r:2,id:"round1",t:"When is the first roundtable?",o:["Within 30 days","Within 60 days","After we reach 5 members","Not set"],date:1},
+ {r:2,id:"survey",t:"When does the clinician survey go out?",o:["Ready now","Within 30 days","Within 60 days","Not set"]},
+ {r:2,id:"hours",t:"How many hours a month does membership take a doctor?",o:["Under 1","1 to 2","3 to 5","More than 5","Not sure"]},
+ {r:2,id:"first",t:"Roughly when could the first guideline or standard be out?",o:["3 months","6 months","12 months","Longer","Too early to say"]},
+ {r:3,id:"seats",t:"How many of the 12 founding seats are taken?",seats:1},
+ {r:3,id:"rate",t:"The release says the first 12 companies get 25% off. Does a physician practice at the $10K tier count?",o:["Yes","No","It’s a different deal"],text:"Details"},
+ {r:3,id:"ends",t:"When does the founding rate end?",o:["When 12 seats fill","On a set date","No end date yet"],date:1},
+ {r:3,id:"extra",t:"What do founding members get that later members won’t?",multi:1,o:["A named founding seat","A vote on the first standard","Dues locked in","Nothing extra yet"],text:"Anything else"},
+ {r:4,id:"five",t:"If a doctor joins and I2CM doesn’t reach five members, what happens to their dues?",o:["Refunded","Credited","Kept","Not decided"],text:"How you’d want me to say it"},
+ {r:4,id:"pay",t:"Can a practice pay quarterly or monthly?",o:["Yes","Case by case","Annual only"]},
+ {r:4,id:"step",t:"What’s the smallest first step a doctor can take before paying?",multi:1,o:["Take the survey","Sit in on one roundtable","Talk to a member doctor","Read the white paper","None yet"]},
+ {r:5,id:"no",t:"What reasons have doctors given for stalling or saying no?",multi:1,o:["Price","No time","Can’t see what they get","Waiting to see who joins","Haven’t heard a no yet"],text:"Other reasons"},
+ {r:5,id:"legal",t:"When someone asks if it’s legal for competitors to work together, what should I say?",o:["Send them to me"],text:"The words you’d use",long:1},
+ {r:5,id:"chan",t:"Which channels can I use to reach doctors?",multi:1,o:["i2cm.org email","Text","LinkedIn","My peptide community","Phone"]},
+ {r:5,id:"ai",t:"Can I use an AI assistant to research and draft for I2CM prospects?",o:["Yes","Yes, with limits","No"],text:"Limits, if any"}
+];
+var KEY="founding-seat-builder-v1", A={}, step=-1, app=document.getElementById("app");
+try{var s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.A){A=s.A; step=typeof s.step==="number"?s.step:-1;}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({A:A,step:step}));}catch(e){}}
+function el(tag,cls,txt){var n=document.createElement(tag); if(cls)n.className=cls; if(txt!=null)n.textContent=txt; return n;}
+function ans(q){return A[q.id]||(A[q.id]={c:[],x:"",d:"",n:null,skip:false});}
+function hasAnswer(q){var a=A[q.id]; return !!a&&!a.skip&&(a.c.length>0||a.x.trim()!==""||a.d!==""||a.n!==null);}
+function show(q){var a=A[q.id]; if(!a||a.skip||!hasAnswer(q))return ""; var p=[];
+  if(a.n!==null)p.push(a.n+" of 12"); if(a.c.length)p.push(a.c.join(", ")); if(a.d)p.push(a.d); if(a.x.trim())p.push(a.x.trim()); return p.join(". ");}
+function meter(){var m=el("div","meter"); m.setAttribute("role","img");
+  var total=0; ROUNDS.forEach(function(_,r){var qs=Q.filter(function(q){return q.r===r;}), done=qs.filter(hasAnswer).length; total+=done;
+    var b=el("div"), i=el("i"); i.style.width=Math.round(100*done/qs.length)+"%"; b.appendChild(i); m.appendChild(b);});
+  m.setAttribute("aria-label",total+" of "+Q.length+" answered"); return m;}
+function intro(){
+  app.textContent="";
+  app.appendChild(el("h1",null,"Help me sell your founding seats"));
+  var names=el("div","names"); app.appendChild(names);
+  var p=el("p",null,"Hey John. I want to sell this the way you’d sell it, so I turned my questions into six quick rounds. Tap an answer or type your own. It takes about 12 minutes.");
+  app.appendChild(p);
+  app.appendChild(el("p","soft","If you can’t answer one yet, tap “Can’t answer yet.” Those are useful too, because a doctor will ask the same thing."));
+  var nav=el("div","nav"), b=el("button","btn",Object.keys(A).length?"Pick up where you left off":"Start round 1");
+  b.onclick=function(){step=Math.max(0,Math.min(step,Q.length)); if(step<0)step=0; save(); render();}; nav.appendChild(b); app.appendChild(nav);
+  app.appendChild(el("p","note","Jeremy"));
+  var V=["Semaglutide 2.5 mg/mL inj","SEMAGLUTIDE VIAL 5MG","sema/B12 compound","Semaglutide (cmpd) 1 mL","SEMAGLUTIDE-CYANOCOBALAMIN","Sema 2.5mg MDV","semaglutide"], i=0;
+  var still=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function tick(){names.textContent=V[i]; if(i===V.length-1){names.className="names done"; names.textContent="semaglutide. One name is the whole idea."; return;} i++; setTimeout(tick,380);}
+  if(still){names.className="names done"; names.textContent="semaglutide. One name is the whole idea.";} else tick();
+}
+function question(){
+  var q=Q[step], a=ans(q); app.textContent="";
+  app.appendChild(meter());
+  app.appendChild(el("p","round","Round "+(q.r+1)+" of 6: "+ROUNDS[q.r]));
+  var card=el("div","card"); card.appendChild(el("div","q",q.t));
+  if(q.seats){var g=el("div","seats"); for(var n=1;n<=12;n++){(function(n){var s=el("button","seat"+(a.n!==null&&n<=a.n?" on":""),String(n)); s.type="button";
+      s.setAttribute("aria-label",n+" seats taken"); s.onclick=function(){a.n=(a.n===n?n-1:n); a.skip=false; save(); question();}; g.appendChild(s);})(n);} card.appendChild(g);
+    card.appendChild(el("p","soft",a.n===null?"Tap the last seat that’s filled.":a.n+" taken, "+(12-a.n)+" left."));}
+  if(q.o){var ch=el("div","chips"); q.o.forEach(function(o){var c=el("button","chip",o); c.type="button"; c.setAttribute("aria-pressed",a.c.indexOf(o)>-1?"true":"false");
+      c.onclick=function(){var k=a.c.indexOf(o); if(q.multi){if(k>-1)a.c.splice(k,1); else a.c.push(o);} else a.c=(k>-1?[]:[o]); a.skip=false; save(); question();}; ch.appendChild(c);}); card.appendChild(ch);
+    if(q.multi)card.appendChild(el("p","soft","Pick as many as fit."));}
+  if(q.date){var d=el("input"); d.type="date"; d.value=a.d; d.setAttribute("aria-label","Date, if you have one"); d.onchange=function(){a.d=d.value; a.skip=false; save();}; card.appendChild(d);}
+  if(q.text){var t=el("textarea"); t.placeholder=q.text; t.value=a.x; t.setAttribute("aria-label",q.text); if(!q.long)t.style.minHeight="64px";
+    t.oninput=function(){a.x=t.value; if(t.value.trim())a.skip=false; save();}; card.appendChild(t);}
+  app.appendChild(card);
+  var nav=el("div","nav"), back=el("button","btn ghost","Back"), next=el("button","btn",step===Q.length-1?"See the offer sheet":"Next"), skip=el("button","btn skip","Can’t answer yet");
+  back.onclick=function(){step--; save(); render();};
+  next.onclick=function(){if(!hasAnswer(q))a.skip=true; step++; save(); render();};
+  skip.onclick=function(){a.skip=true; step++; save(); render();};
+  nav.appendChild(back); nav.appendChild(next); nav.appendChild(skip); app.appendChild(nav);
+  window.scrollTo(0,0);
+}
+function sheet(){
+  app.textContent=""; app.className="wrap sheet";
+  app.appendChild(meter());
+  var done=Q.filter(hasAnswer).length, open=Q.length-done;
+  app.appendChild(el("h1",null,"Founding seat, draft one"));
+  app.appendChild(el("p",null,done+" answered, "+open+" still open. Thanks, John. Copy this and send it to me, and I’ll turn it into a one-page offer for you to approve."));
+  var lines=["FOUNDING SEAT BUILDER: John’s answers",""];
+  ROUNDS.forEach(function(name,r){app.appendChild(el("h2",null,name)); lines.push(name.toUpperCase());
+    Q.filter(function(q){return q.r===r;}).forEach(function(q){var v=show(q), row=el("div","row"+(v?"":" open")); row.appendChild(el("b",null,q.t)); row.appendChild(el("span",null,v||"Still open"));
+      app.appendChild(row); lines.push("Q: "+q.t); lines.push("A: "+(v||"STILL OPEN")); lines.push("");});});
+  var out=el("textarea","out"); out.readOnly=true; out.value=lines.join("\n"); out.setAttribute("aria-label","All answers as text");
+  var nav=el("div","nav"), copy=el("button","btn","Copy answers"), edit=el("button","btn ghost","Change an answer"), msg=el("p","note","");
+  copy.onclick=function(){out.focus(); out.select(); var ok=false; try{ok=document.execCommand("copy");}catch(e){}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(out.value).then(function(){msg.textContent="Copied. Paste it into a text or email to Jeremy.";},function(){msg.textContent=ok?"Copied. Paste it into a text or email to Jeremy.":"Copy didn’t work here. Select the text below and copy it by hand.";});}
+    else msg.textContent=ok?"Copied. Paste it into a text or email to Jeremy.":"Copy didn’t work here. Select the text below and copy it by hand.";};
+  edit.onclick=function(){app.className="wrap"; step=0; save(); render();};
+  nav.appendChild(copy); nav.appendChild(edit); app.appendChild(el("h2",null,"Send it over")); app.appendChild(nav); app.appendChild(msg); app.appendChild(out);
+  app.appendChild(el("p","note","Your answers are saved in this browser only. Nothing is sent anywhere until you copy and send it yourself."));
+  window.scrollTo(0,0);
+}
+function render(){app.className="wrap"; if(step<0)intro(); else if(step>=Q.length)sheet(); else question();}
+if(step>=0&&step<Q.length){var keep=step; step=-1; render(); step=keep;} else render();
+})();
+</script>
+</body>
+</html>
